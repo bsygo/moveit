@@ -243,7 +243,7 @@ class PlanningSceneInterface(object):
             conversions.msg_from_string(msg, ser_aobjs[key])
             aobjs[key] = msg
         return aobjs
-    
+
     def get_collision_matrix(self):
         ser_matrix = self._psi.get_collision_matrix()
         matrix = AllowedCollisionMatrix()
@@ -268,8 +268,6 @@ class PlanningSceneInterface(object):
         ps.allowed_collision_matrix = matrix
         return self.apply_planning_scene(ps)
 
-    # True = no collision, False = collision
-    # Diagonal should be false
     def disable_collision(self, target_object_id, links):
         matrix = self.get_collision_matrix()
         ps = PlanningScene()
