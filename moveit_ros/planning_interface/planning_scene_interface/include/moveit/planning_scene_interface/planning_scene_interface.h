@@ -88,6 +88,9 @@ public:
   /** \brief Get the poses from the objects identified by the given object ids list. */
   std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string>& object_ids);
 
+  /** \brief Get the allowed collision matrix from the planning scene. */
+  moveit_msgs::AllowedCollisionMatrix getCollisionMatrix();
+
   /** \brief Get the objects identified by the given object ids list. If no ids are provided, return all the known
    * objects. */
   std::map<std::string, moveit_msgs::CollisionObject>

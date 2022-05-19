@@ -209,6 +209,21 @@ public:
     return result;
   }
 
+  moveit_msgs::AllowedCollisionMatrix getCollisionMatrix()
+  {
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    moveit_msgs::AllowedCollisionMatrix result;
+    request.components.components = request.components.ALLOWED_COLLISION_MATRIX;
+    if (!planning_scene_service_.call(request, response))
+    {
+      ROS_WARN_NAMED(LOGNAME, "Could not call planning scene service to get allowed collision matrix");
+      return result;
+    }
+    result = response.scene.allowed_collision_matrix;
+    return result;
+  }
+
   bool applyPlanningScene(const moveit_msgs::PlanningScene& planning_scene)
   {
     moveit_msgs::ApplyPlanningScene::Request request;
@@ -313,6 +328,11 @@ std::map<std::string, moveit_msgs::AttachedCollisionObject>
 PlanningSceneInterface::getAttachedObjects(const std::vector<std::string>& object_ids)
 {
   return impl_->getAttachedObjects(object_ids);
+}
+
+moveit_msgs::AllowedCollisionMatrix PlanningSceneInterface::getCollisionMatrix()
+{
+  return impl_->getCollisionMatrix();
 }
 
 bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionObject& collision_object)

@@ -36,7 +36,7 @@ import rospy
 from rosgraph.names import ns_join
 from . import conversions
 
-from moveit_msgs.msg import PlanningScene, CollisionObject, AttachedCollisionObject
+from moveit_msgs.msg import PlanningScene, CollisionObject, AttachedCollisionObject, ObjectColor, AllowedCollisionMatrix, AllowedCollisionEntry
 from moveit_ros_planning_interface import _moveit_planning_scene_interface
 from geometry_msgs.msg import Pose, Point
 from shape_msgs.msg import SolidPrimitive, Plane, Mesh, MeshTriangle
@@ -243,6 +243,56 @@ class PlanningSceneInterface(object):
             conversions.msg_from_string(msg, ser_aobjs[key])
             aobjs[key] = msg
         return aobjs
+    
+    def get_collision_matrix(self):
+        ser_matrix = self._psi.get_collision_matrix()
+        matrix = AllowedCollisionMatrix()
+        conversions.msg_from_string(matrix, ser_matrix)
+        return matrix
+
+    def enable_collision(self, target_object_id, links):
+        matrix = self.get_collision_matrix()
+        ps = PlanningScene()
+        ps.is_diff = True
+        try:
+            target_index = matrix.entry_names.index(target_object_id)
+        except:
+            raise MoveItCommanderException("The target object is not in the ACM. Please add the object to the ACM and try again.")
+        for link in links:
+            try:
+                link_index = matrix.entry_names.index(link)
+            except:
+                raise MoveItCommanderException("The link {} was not part of the ACM. Please add it to the ACM and try again.".format(link))
+            matrix.entry_values[link_index].enabled[target_index] = False
+            matrix.entry_values[target_index].enabled[link_index] = False
+        ps.allowed_collision_matrix = matrix
+        return self.apply_planning_scene(ps)
+
+    # True = no collision, False = collision
+    # Diagonal should be false
+    def disable_collision(self, target_object_id, links):
+        matrix = self.get_collision_matrix()
+        ps = PlanningScene()
+        ps.is_diff = True
+        try:
+            target_index = matrix.entry_names.index(target_object_id)
+        except:
+            matrix.entry_names.append(target_object_id)
+            for entry in matrix.entry_values:
+                entry.enabled.append(False)
+            new_entry = AllowedCollisionEntry()
+            new_entry.enabled = [False for i in range(len(matrix.entry_names))]
+            matrix.entry_values.append(new_entry)
+            target_index = matrix.entry_names.index(target_object_id)
+        for link in links:
+            try:
+                link_index = matrix.entry_names.index(link)
+            except:
+                 raise MoveItCommanderException("The link {} was not part of the ACM. Please add it to the ACM and try again.".format(link))
+            matrix.entry_values[link_index].enabled[target_index] = True
+            matrix.entry_values[target_index].enabled[link_index] = True
+        ps.allowed_collision_matrix = matrix
+        return self.apply_planning_scene(ps)
 
     def apply_planning_scene(self, planning_scene_message):
         """
