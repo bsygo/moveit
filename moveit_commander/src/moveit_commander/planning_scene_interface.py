@@ -129,6 +129,12 @@ class PlanningSceneInterface(object):
         co.plane_poses = [pose.pose]
         self.__submit(co, attach=False)
 
+    def apply_collision_object(self, collision_object, color):
+        self._psi.apply_collision_object(conversions.msg_to_string(collision_object), conversions.msg_to_string(color))
+
+    def apply_collision_object(slef, collision_objects, color):
+        
+
     def attach_object(self, attached_collision_object):
         """Attach an object in the planning scene"""
         self.__submit(attached_collision_object, attach=True)

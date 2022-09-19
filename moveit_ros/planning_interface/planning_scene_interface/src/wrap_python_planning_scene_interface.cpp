@@ -60,6 +60,29 @@ public:
   {
   }
 
+  bool applyCollisionObjectPython(const py_bindings_tools::ByteString& object_str, const py_bindings_tools::ByteString& color_str)
+  {
+    moveit_msgs::CollisionObject object_msg;
+    std_msgs::ColorRGBA color_msg;
+    py_bindings_tools::deserializeMsg(object_str, object_msg);
+    py_bindings_tools::deserializeMsg(color_str, color_msg);
+    return applyCollisionObject(object_msg, color_msg);
+  }
+
+  bool applyCollisionObjectsPython(const bp::list& object_list, const bp::list& color_list)
+  {
+    std::vector<moveit_msgs::CollisionObject> object_msgs;
+    std::vector<moveit_msgs::ObjectColor> object_colors;
+    std::vector<py_bindings_tools::ByteString> ser_object_msgs = py_bindings_tools::typeFromList(object_list);
+    std::vector<py_bindings_tools::ByteString> ser_object_colors = pybindings_tools::typeFromList(color_list);
+    moveit_msgs::CollisionObject object_helper;
+    std_msgs::ColorRGBA color_helper;
+    for (std::size_t i = 0; i < ser_object_msgs.size(); ++i)
+      object_msgs.push_back(py_bindings_tools::deserializeMsg(object_list.at(i), object_helper))
+      object_colors.push_back(py_bindings_tools::deserializeMsg(color_list.at(i), color_helper))
+    return applyCollisionObjects(object_msgs, object_colors)
+  }
+
   bp::list getKnownObjectNamesPython(bool with_type = false)
   {
     return py_bindings_tools::listFromString(getKnownObjectNames(with_type));
@@ -117,6 +140,7 @@ static void wrap_planning_scene_interface()
   bp::class_<PlanningSceneInterfaceWrapper> planning_scene_class("PlanningSceneInterface",
                                                                  bp::init<bp::optional<std::string>>());
 
+  planning_scene_class.def("apply_collision_object", &PlanningSceneInterfaceWrapper::applyCollisionObjectPython);
   planning_scene_class.def("get_known_object_names", &PlanningSceneInterfaceWrapper::getKnownObjectNamesPython);
   planning_scene_class.def("get_known_object_names_in_roi",
                            &PlanningSceneInterfaceWrapper::getKnownObjectNamesInROIPython);
