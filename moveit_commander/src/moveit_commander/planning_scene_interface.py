@@ -245,50 +245,83 @@ class PlanningSceneInterface(object):
         return aobjs
 
     def get_collision_matrix(self):
+        """
+        Get the AllowedCollisionMatrix of the current planning scene.
+        """
         ser_matrix = self._psi.get_collision_matrix()
         matrix = AllowedCollisionMatrix()
         conversions.msg_from_string(matrix, ser_matrix)
         return matrix
 
-    def enable_collision(self, target_object_id, links):
+    def disable_collision_detections(self, first_links, second_links):
+        """
+        Disables the collision detection between the links specified in first links and the links specified in second links. Both can be either a singular link name, provided as a string, or a list of link names, provided as a list of strings. If the provided links aren't already in the AllowedCollisionMatrix, they are added.
+        """
+        if isinstance(first_links, str):
+            first_links = [first_links]
+        if isinstance(second_links, str):
+            second_links = [second_links]
         matrix = self.get_collision_matrix()
         ps = PlanningScene()
         ps.is_diff = True
-        try:
-            target_index = matrix.entry_names.index(target_object_id)
-        except:
-            raise MoveItCommanderException("The target object is not in the ACM. Please add the object to the ACM and try again.")
-        for link in links:
+        first_indices = []
+        second_indices = []
+        for first_link in first_links:
             try:
-                link_index = matrix.entry_names.index(link)
+                first_indices.append(matrix.entry_names.index(first_link))
             except:
-                raise MoveItCommanderException("The link {} was not part of the ACM. Please add it to the ACM and try again.".format(link))
-            matrix.entry_values[link_index].enabled[target_index] = False
-            matrix.entry_values[target_index].enabled[link_index] = False
+                matrix.entry_names.append(first_link)
+                for entry in matrix.entry_values:
+                    entry.enabled.append(False)
+                new_entry = AllowedCollisionEntry()
+                new_entry.enabled = [False for i in range(len(matrix.entry_names))]
+                matrix.entry_values.append(new_entry)
+                first_indices.append(matrix.entry_names.index(first_link))
+        for second_link in second_links:
+            try:
+                second.append(matrix.entry_names.index(second_link))
+            except:
+                matrix.entry_names.append(second_link)
+                for entry in matrix.entry_values:
+                    entry.enabled.append(False)
+                new_entry = AllowedCollisionEntry()
+                new_entry.enabled = [False for i in range(len(matrix.entry_names))]
+                matrix.entry_values.append(new_entry)
+                second_indices.append(matrix.entry_names.index(second_link))
+        for first_index in first_indices:
+            for second_index in second_indices:
+                matrix.entry_values[first_index].enabled[second_index] = True
+                matrix.entry_values[second_index].enabled[first_index] = True
         ps.allowed_collision_matrix = matrix
         return self.apply_planning_scene(ps)
 
-    def disable_collision(self, target_object_id, links):
+    def enable_collision_detections(self, first_links, second_links):
+        """
+        Enables the collision detection between the links specified in first links and the links specified in second links. Both can be either a singular link name, provided as a string, or a list of link names, provided as a list of strings. The given link names have to be already in the AllowedCollisionMatrix.
+        """
+        if isinstance(first_links, str):
+            first_links = [first_links]
+        if isinstance(second_links, str):
+            second_links = [second_links]
         matrix = self.get_collision_matrix()
         ps = PlanningScene()
         ps.is_diff = True
-        try:
-            target_index = matrix.entry_names.index(target_object_id)
-        except:
-            matrix.entry_names.append(target_object_id)
-            for entry in matrix.entry_values:
-                entry.enabled.append(False)
-            new_entry = AllowedCollisionEntry()
-            new_entry.enabled = [False for i in range(len(matrix.entry_names))]
-            matrix.entry_values.append(new_entry)
-            target_index = matrix.entry_names.index(target_object_id)
-        for link in links:
+        first_indices = []
+        second_indices = []
+        for first_link in first_links:
             try:
-                link_index = matrix.entry_names.index(link)
+                first_indices.append(matrix.entry_names.index(first_link))
             except:
-                 raise MoveItCommanderException("The link {} was not part of the ACM. Please add it to the ACM and try again.".format(link))
-            matrix.entry_values[link_index].enabled[target_index] = True
-            matrix.entry_values[target_index].enabled[link_index] = True
+                raise MoveItCommanderException("The link {} is not in the ACM. Please add the link to the ACM and try again.".format(first_link))
+        for second_link in second_links:
+            try:
+                second_indices.append(matrix.entry_names.index(second_link))
+            except:
+                raise MoveItCommanderException("The link {} is not in the ACM. Please add the link to the ACM and try again.".format(second_link))
+        for first_index in first_indices:
+            for second_index in second_indices:
+                matrix.entry_values[first_index].enabled[second_index] = False
+                matrix.entry_values[second_index].enabled[first_index] = False
         ps.allowed_collision_matrix = matrix
         return self.apply_planning_scene(ps)
 
