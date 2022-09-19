@@ -255,7 +255,9 @@ class PlanningSceneInterface(object):
 
     def disable_collision_detections(self, first_links, second_links):
         """
-        Disables the collision detection between the links specified in first links and the links specified in second links. Both can be either a singular link name, provided as a string, or a list of link names, provided as a list of strings. If the provided links aren't already in the AllowedCollisionMatrix, they are added.
+        Disables the collision detection between the links specified in first links and the links specified in second links.
+        Both can be either a singular link name, provided as a string, or a list of link names, provided as a list of strings.
+        If the provided links aren't already in the AllowedCollisionMatrix, they are added.
         """
         if isinstance(first_links, str):
             first_links = [first_links]
@@ -297,7 +299,9 @@ class PlanningSceneInterface(object):
 
     def enable_collision_detections(self, first_links, second_links):
         """
-        Enables the collision detection between the links specified in first links and the links specified in second links. Both can be either a singular link name, provided as a string, or a list of link names, provided as a list of strings. The given link names have to be already in the AllowedCollisionMatrix.
+        Enables the collision detection between the links specified in first links and the links specified in second links.
+        Both can be either a singular link name, provided as a string, or a list of link names, provided as a list of strings.
+        The given link names have to be already in the AllowedCollisionMatrix.
         """
         if isinstance(first_links, str):
             first_links = [first_links]
