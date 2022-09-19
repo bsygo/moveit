@@ -130,10 +130,25 @@ class PlanningSceneInterface(object):
         self.__submit(co, attach=False)
 
     def apply_collision_object(self, collision_object, color):
+        """
+        Applies the given collision object with the given color to the planning
+        scene.
+        """
         self._psi.apply_collision_object(conversions.msg_to_string(collision_object), conversions.msg_to_string(color))
 
-    def apply_collision_object(slef, collision_objects, color):
-        
+    def apply_collision_objects(self, collision_objects, colors):
+        """
+        Applies the given collision objects with the given colors to the
+        planning scene. Both need to be provided as lists of their respective
+        objects.
+        """
+        collision_objects_ser = []
+        colors_ser = []
+        for collision_object in collision_objects:
+            collision_objects_ser.append(conversions.msg_to_string(collision_object))
+        for color in colors:
+            colors_ser.append(conversions.msg_to_string(color))
+        self._psi.apply_collision_objects(collision_objects_ser, colors_ser)
 
     def attach_object(self, attached_collision_object):
         """Attach an object in the planning scene"""

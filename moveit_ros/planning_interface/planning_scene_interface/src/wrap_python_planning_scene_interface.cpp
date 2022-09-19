@@ -141,6 +141,7 @@ static void wrap_planning_scene_interface()
                                                                  bp::init<bp::optional<std::string>>());
 
   planning_scene_class.def("apply_collision_object", &PlanningSceneInterfaceWrapper::applyCollisionObjectPython);
+  planning_scene_class.def("apply_collision_objects", &PlanningSceneInterfaceWrapper::applyCollisionObjectPython);
   planning_scene_class.def("get_known_object_names", &PlanningSceneInterfaceWrapper::getKnownObjectNamesPython);
   planning_scene_class.def("get_known_object_names_in_roi",
                            &PlanningSceneInterfaceWrapper::getKnownObjectNamesInROIPython);
