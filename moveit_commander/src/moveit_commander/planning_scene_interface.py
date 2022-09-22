@@ -132,7 +132,7 @@ class PlanningSceneInterface(object):
     def apply_collision_object(self, collision_object, color):
         """
         Applies the given collision object with the given color to the planning
-        scene.
+        scene. The color needs to be specified using a std_msgs ColorRGBA.
         """
         self._psi.apply_collision_object(conversions.msg_to_string(collision_object), conversions.msg_to_string(color))
 
@@ -140,7 +140,8 @@ class PlanningSceneInterface(object):
         """
         Applies the given collision objects with the given colors to the
         planning scene. Both need to be provided as lists of their respective
-        objects.
+        objects. The colors need to be specified using a moveit_msgs
+        ObjectColor.
         """
         collision_objects_ser = []
         colors_ser = []
