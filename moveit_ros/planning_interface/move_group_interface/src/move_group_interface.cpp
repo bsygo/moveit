@@ -99,6 +99,11 @@ public:
                          const ros::WallDuration& wait_for_servers)
     : opt_(opt), node_handle_(opt.node_handle_), tf_buffer_(tf_buffer)
   {
+    ns_prefix_ = "";
+    if (node_handle_.getNamespace() == "/move_group")
+    {
+        ns_prefix_ = "/";
+    }
     robot_model_ = opt.robot_model_ ? opt.robot_model_ : getSharedRobotModel(opt.robot_description_);
     if (!getRobotModel())
     {
@@ -141,9 +146,9 @@ public:
     pose_reference_frame_ = getRobotModel()->getModelFrame();
 
     trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>(
-        trajectory_execution_manager::TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC, 1, false);
+        ns_prefix_ + trajectory_execution_manager::TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC, 1, false);
     attached_object_publisher_ = node_handle_.advertise<moveit_msgs::AttachedCollisionObject>(
-        planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC, 1, false);
+        ns_prefix_ + planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC, 1, false);
 
     current_state_monitor_ = getSharedStateMonitor(robot_model_, tf_buffer_, node_handle_);
 
@@ -153,32 +158,32 @@ public:
     double allotted_time = wait_for_servers.toSec();
 
     move_action_client_ = std::make_unique<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>>(
-        node_handle_, move_group::MOVE_ACTION, false);
-    waitForAction(move_action_client_, move_group::MOVE_ACTION, timeout_for_servers, allotted_time);
+        node_handle_, ns_prefix_ + move_group::MOVE_ACTION, false);
+    waitForAction(move_action_client_, ns_prefix_ + move_group::MOVE_ACTION, timeout_for_servers, allotted_time);
 
     pick_action_client_ = std::make_unique<actionlib::SimpleActionClient<moveit_msgs::PickupAction>>(
-        node_handle_, move_group::PICKUP_ACTION, false);
-    waitForAction(pick_action_client_, move_group::PICKUP_ACTION, timeout_for_servers, allotted_time);
+        node_handle_, ns_prefix_ + move_group::PICKUP_ACTION, false);
+    waitForAction(pick_action_client_, ns_prefix_ + move_group::PICKUP_ACTION, timeout_for_servers, allotted_time);
 
     place_action_client_ = std::make_unique<actionlib::SimpleActionClient<moveit_msgs::PlaceAction>>(
-        node_handle_, move_group::PLACE_ACTION, false);
-    waitForAction(place_action_client_, move_group::PLACE_ACTION, timeout_for_servers, allotted_time);
+        node_handle_, ns_prefix_ + move_group::PLACE_ACTION, false);
+    waitForAction(place_action_client_, ns_prefix_ + move_group::PLACE_ACTION, timeout_for_servers, allotted_time);
 
     execute_action_client_ = std::make_unique<actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction>>(
-        node_handle_, move_group::EXECUTE_ACTION_NAME, false);
-    waitForAction(execute_action_client_, move_group::EXECUTE_ACTION_NAME, timeout_for_servers, allotted_time);
+        node_handle_, ns_prefix_ + move_group::EXECUTE_ACTION_NAME, false);
+    waitForAction(execute_action_client_, ns_prefix_ + move_group::EXECUTE_ACTION_NAME, timeout_for_servers, allotted_time);
 
     query_service_ =
-        node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
+        node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(ns_prefix_ + move_group::QUERY_PLANNERS_SERVICE_NAME);
     get_params_service_ =
-        node_handle_.serviceClient<moveit_msgs::GetPlannerParams>(move_group::GET_PLANNER_PARAMS_SERVICE_NAME);
+        node_handle_.serviceClient<moveit_msgs::GetPlannerParams>(ns_prefix_ + move_group::GET_PLANNER_PARAMS_SERVICE_NAME);
     set_params_service_ =
-        node_handle_.serviceClient<moveit_msgs::SetPlannerParams>(move_group::SET_PLANNER_PARAMS_SERVICE_NAME);
+        node_handle_.serviceClient<moveit_msgs::SetPlannerParams>(ns_prefix_ + move_group::SET_PLANNER_PARAMS_SERVICE_NAME);
 
     cartesian_path_service_ =
-        node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(move_group::CARTESIAN_PATH_SERVICE_NAME);
+        node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(ns_prefix_ + move_group::CARTESIAN_PATH_SERVICE_NAME);
 
-    plan_grasps_service_ = node_handle_.serviceClient<moveit_msgs::GraspPlanning>(GRASP_PLANNING_SERVICE_NAME);
+    plan_grasps_service_ = node_handle_.serviceClient<moveit_msgs::GraspPlanning>(ns_prefix_ + GRASP_PLANNING_SERVICE_NAME);
 
     ROS_INFO_STREAM_NAMED(LOGNAME, "Ready to take commands for planning group " << opt.group_name_ << ".");
   }
@@ -642,7 +647,7 @@ public:
 
     // if needed, start the monitor and wait up to 1 second for a full robot state
     if (!current_state_monitor_->isActive())
-      current_state_monitor_->startStateMonitor();
+      current_state_monitor_->startStateMonitor(ns_prefix_ + "joint_states");
 
     if (!current_state_monitor_->waitForCurrentState(ros::Time::now(), wait_seconds))
     {
@@ -1284,6 +1289,7 @@ private:
 
   Options opt_;
   ros::NodeHandle node_handle_;
+  std::string ns_prefix_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   moveit::core::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;

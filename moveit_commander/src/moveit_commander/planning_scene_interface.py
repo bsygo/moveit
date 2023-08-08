@@ -65,7 +65,11 @@ class PlanningSceneInterface(object):
     """
 
     def __init__(self, ns="", synchronous=False, service_timeout=5.0):
-        self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
+        if ns == "/":
+            psi_ns = "/planning_scene_interface"
+        else:
+            psi_ns = ns
+        self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(psi_ns)
 
         self._pub_co = rospy.Publisher(
             ns_join(ns, "collision_object"), CollisionObject, queue_size=100

@@ -63,6 +63,8 @@ class MoveGroupCommander(object):
         self, name, robot_description="robot_description", ns="", wait_for_servers=5.0
     ):
         """Specify the group name for which to construct this commander instance. Throws an exception if there is an initialization error."""
+        if ns == "/":
+            ns = "/move_group"
         self._g = _moveit_move_group_interface.MoveGroupInterface(
             name, robot_description, ns, wait_for_servers
         )

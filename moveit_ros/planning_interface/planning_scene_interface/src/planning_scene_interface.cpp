@@ -52,12 +52,17 @@ class PlanningSceneInterface::PlanningSceneInterfaceImpl
 public:
   explicit PlanningSceneInterfaceImpl(const std::string& ns = "", bool wait = true)
   {
+    std::string ns_prefix = "";
+    if (ns == "/planning_scene_interface")
+    {
+        ns_prefix = "/";
+    }
     node_handle_ = ros::NodeHandle(ns);
-    planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
+    planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>(ns_prefix + "planning_scene", 1);
     planning_scene_service_ =
-        node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
+        node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(ns_prefix + move_group::GET_PLANNING_SCENE_SERVICE_NAME);
     apply_planning_scene_service_ =
-        node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
+        node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(ns_prefix + move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
 
     if (wait)
     {
